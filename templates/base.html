@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title if title else "交互式数据分析系统" }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<nav class="top-nav">
+    <div class="brand">交互式数据分析系统</div>
+    <div class="links">
+        <a href="/">首页</a>
+        <a href="/dataset_info">数据集说明</a>
+        <a href="/preview">数据预览</a>
+        <a href="/clean">数据清洗</a>
+        <a href="/analysis">数据分析</a>
+        <a href="/visual">数据可视化</a>
+        <a href="/exports">结果导出</a>
+    </div>
+</nav>
+
+<main class="container">
+    {% if message %}
+        <div class="alert alert-info">{{ message }}</div>
+    {% endif %}
+
+    {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+</main>
+</body>
+</html>

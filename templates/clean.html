@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+{% set title = "数据清洗" %}
+
+{% block content %}
+<div class="card">
+    <h1>数据清洗模块</h1>
+    <p class="muted">
+        本页面用于对数据进行预处理，包括缺失值填充、重复值删除、异常值检测与字段格式转换。合理的数据清洗能够提高后续分析和可视化结果的可靠性。
+    </p>
+    <p><strong>当前数据规模：</strong>{{ rows }} 行，{{ cols }} 列</p>
+
+    <h2>自动化清洗规则配置</h2>
+    <form method="post" class="form-grid">
+        <div>
+            <label>数值型缺失值处理</label>
+            <select name="numeric_strategy">
+                <option value="median">中位数填充</option>
+                <option value="mean">均值填充</option>
+                <option value="zero">0 填充</option>
+                <option value="drop">删除缺失行</option>
+                <option value="none">不处理</option>
+            </select>
+        </div>
+
+        <div>
+            <label>类别型缺失值处理</label>
+            <select name="category_strategy">
+                <option value="mode">众数填充</option>
+                <option value="unknown">Unknown 填充</option>
+                <option value="drop">删除缺失行</option>
+                <option value="none">不处理</option>
+            </select>
+        </div>
+
+        <div>
+            <label>异常值检测方法</label>
+            <select name="outlier_method">
+                <option value="iqr">IQR 四分位距法</option>
+                <option value="zscore">Z-Score 标准分法</option>
+                <option value="none">不检测</option>
+            </select>
+        </div>
+
+        <div>
+            <label>异常值处理方式</label>
+            <select name="outlier_action">
+                <option value="cap">盖帽处理</option>
+                <option value="remove">删除异常行</option>
+                <option value="flag">只标记异常值</option>
+                <option value="none">只检测不处理</option>
+            </select>
+        </div>
+
+        <div class="wide">
+            <label>指定异常值检测列</label>
+            <input type="text" name="outlier_columns" placeholder="例如：MinTemp,MaxTemp,Rainfall。留空表示检测所有数值列">
+        </div>
+
+        <div class="checkbox-line">
+            <label><input type="checkbox" name="drop_duplicate" checked> 删除重复值</label>
+            <label><input type="checkbox" name="use_weather_rules" checked> 启用天气数据专用规则</label>
+        </div>
+
+        <div class="wide btn-row">
+            <button type="submit">执行数据清洗</button>
+            <a class="btn secondary" href="/analysis">进入数据分析</a>
+            <a class="btn secondary" href="/download_cleaned">下载清洗结果</a>
+        </div>
+    </form>
+</div>
+
+{% if report and report.comparison %}
+<div class="card">
+    <h2>清洗前后对比</h2>
+    <div class="summary-grid">
+        <div class="summary-item"><span>清洗前行数</span><strong>{{ report.comparison.before_rows }}</strong></div>
+        <div class="summary-item"><span>清洗后行数</span><strong>{{ report.comparison.after_rows }}</strong></div>
+        <div class="summary-item"><span>删除行数</span><strong>{{ report.comparison.removed_rows }}</strong></div>
+        <div class="summary-item"><span>清洗前缺失值</span><strong>{{ report.comparison.missing_before_total }}</strong></div>
+        <div class="summary-item"><span>清洗后缺失值</span><strong>{{ report.comparison.missing_after_total }}</strong></div>
+        <div class="summary-item"><span>缺失值减少</span><strong>{{ report.comparison.missing_reduced }}</strong></div>
+        <div class="summary-item"><span>清洗前重复行</span><strong>{{ report.comparison.duplicates_before }}</strong></div>
+        <div class="summary-item"><span>清洗后重复行</span><strong>{{ report.comparison.duplicates_after }}</strong></div>
+        <div class="summary-item"><span>重复行减少</span><strong>{{ report.comparison.duplicates_reduced }}</strong></div>
+        <div class="summary-item"><span>异常值处理数量</span><strong>{{ report.comparison.outlier_handled_total }}</strong></div>
+        <div class="summary-item"><span>字段类型转换</span><strong>{{ report.comparison.type_converted_count }}</strong></div>
+        <div class="summary-item"><span>新增字段数量</span><strong>{{ report.comparison.added_cols }}</strong></div>
+    </div>
+
+    {% if report.comparison.missing_by_column %}
+    <h3>各字段缺失值变化</h3>
+    <div class="table-box compact-table">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>字段</th>
+                    <th>清洗前缺失</th>
+                    <th>清洗后缺失</th>
+                    <th>减少数量</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for item in report.comparison.missing_by_column %}
+                <tr>
+                    <td>{{ item.col }}</td>
+                    <td>{{ item.before }}</td>
+                    <td>{{ item.after }}</td>
+                    <td>{{ item.reduced }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2>缺失值可视化</h2>
+    {% if report.missing_chart_before %}
+        <h3>清洗前缺失值图</h3>
+        <div class="chart-box">{{ report.missing_chart_before|safe }}</div>
+    {% else %}
+        <p class="success">清洗前没有检测到缺失值。</p>
+    {% endif %}
+
+    {% if report.missing_chart_after %}
+        <h3>清洗后缺失值图</h3>
+        <div class="chart-box">{{ report.missing_chart_after|safe }}</div>
+    {% else %}
+        <p class="success">清洗后没有检测到缺失值。</p>
+    {% endif %}
+</div>
+{% elif current_missing_chart %}
+<div class="card">
+    <h2>当前缺失值可视化</h2>
+    <div class="chart-box">{{ current_missing_chart|safe }}</div>
+</div>
+{% endif %}
+
+{% if report %}
+<div class="card">
+    <h2>清洗报告</h2>
+
+    <div class="report">
+        <p><strong>原始数据：</strong>{{ report.original_rows }} 行，{{ report.original_cols }} 列</p>
+        <p><strong>清洗后数据：</strong>{{ report.final_rows }} 行，{{ report.final_cols }} 列</p>
+        <p><strong>删除全空行：</strong>{{ report.removed_empty_rows }} 行</p>
+        <p><strong>删除全空列：</strong>{{ report.removed_empty_cols }} 列</p>
+        <p><strong>重复值：</strong>检测到 {{ report.duplicates_before }} 行，删除 {{ report.duplicates_removed }} 行</p>
+    </div>
+
+    <h3>缺失值处理前</h3>
+    {% if report.missing_before %}
+        <ul>
+        {% for col, count in report.missing_before.items() %}
+            <li>{{ col }}：{{ count }} 个缺失值</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p class="success">没有检测到缺失值。</p>
+    {% endif %}
+
+    <h3>缺失值处理操作</h3>
+    {% if report.missing_actions %}
+        <ul>
+        {% for item in report.missing_actions %}
+            <li>{{ item }}</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p class="muted">没有执行缺失值处理。</p>
+    {% endif %}
+
+    <h3>数据类型转换</h3>
+    {% if report.type_converted %}
+        <ul>
+        {% for item in report.type_converted %}
+            <li>{{ item }}</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p class="muted">没有自动转换字段类型。</p>
+    {% endif %}
+
+    <h3>天气数据专用规则</h3>
+    {% if report.domain_rules %}
+        <ul>
+        {% for item in report.domain_rules %}
+            <li>{{ item }}</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p class="muted">未启用天气数据专用规则。</p>
+    {% endif %}
+
+    <h3>异常值检测结果</h3>
+    {% if report.outliers %}
+        <div class="table-box">
+            <table class="table table-bordered table-sm">
+                <thead>
+                    <tr>
+                        <th>字段</th>
+                        <th>方法</th>
+                        <th>下界</th>
+                        <th>上界</th>
+                        <th>异常值数量</th>
+                        <th>处理方式</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for col, info in report.outliers.items() %}
+                    <tr>
+                        <td>{{ col }}</td>
+                        <td>{{ info.method }}</td>
+                        <td>{{ info.lower }}</td>
+                        <td>{{ info.upper }}</td>
+                        <td>{{ info.count }}</td>
+                        <td>{{ info.action }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="success">没有检测到异常值，或未启用异常值检测。</p>
+    {% endif %}
+
+    <h3>异常值处理操作</h3>
+    {% if report.outlier_actions %}
+        <ul>
+        {% for item in report.outlier_actions %}
+            <li>{{ item }}</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p class="muted">没有执行异常值处理。</p>
+    {% endif %}
+</div>
+{% endif %}
+
+<div class="card">
+    <h2>清洗后数据预览</h2>
+    <div class="table-box">
+        {% for table in tables %}
+            {{ table|safe }}
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% set title = "数据集说明" %}
+
+{% block content %}
+<div class="card">
+    <h1>数据集说明</h1>
+    <p class="muted">
+        本页面汇总当前数据集的规模、字段类型、缺失值和重复记录情况，便于在清洗和分析前了解数据质量。
+    </p>
+
+    <div class="summary-grid">
+        <div class="summary-item">
+            <span>文件名</span>
+            <strong>{{ info.filename }}</strong>
+        </div>
+        <div class="summary-item">
+            <span>数据行数</span>
+            <strong>{{ info.rows }}</strong>
+        </div>
+        <div class="summary-item">
+            <span>数据列数</span>
+            <strong>{{ info.cols }}</strong>
+        </div>
+        <div class="summary-item">
+            <span>数值字段</span>
+            <strong>{{ info.numeric_count }}</strong>
+        </div>
+        <div class="summary-item">
+            <span>类别字段</span>
+            <strong>{{ info.category_count }}</strong>
+        </div>
+        <div class="summary-item">
+            <span>日期字段</span>
+            <strong>{{ info.date_count }}</strong>
+        </div>
+        <div class="summary-item">
+            <span>缺失值总数</span>
+            <strong>{{ info.missing_total }}</strong>
+        </div>
+        <div class="summary-item">
+            <span>重复行数量</span>
+            <strong>{{ info.duplicate_rows }}</strong>
+        </div>
+    </div>
+
+    <h3>字段名列表</h3>
+    <div class="tag-box">
+        {% for col in info.columns %}
+            <span class="tag">{{ col }}</span>
+        {% endfor %}
+    </div>
+</div>
+
+{% if info.is_weather_data and info.weather_fields %}
+<div class="card">
+    <h2>天气数据字段解释</h2>
+    <div class="table-box compact-table">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>字段名</th>
+                    <th>含义</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for item in info.weather_fields %}
+                <tr>
+                    <td>{{ item.field }}</td>
+                    <td>{{ item.description }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<div class="card">
+    <h2>通用字段信息</h2>
+    <div class="table-box">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>字段名</th>
+                    <th>数据类型</th>
+                    <th>非空数量</th>
+                    <th>缺失数量</th>
+                    <th>缺失率</th>
+                    <th>示例值</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for item in info.field_details %}
+                <tr>
+                    <td>{{ item.name }}</td>
+                    <td>{{ item.dtype }}</td>
+                    <td>{{ item.non_null }}</td>
+                    <td>{{ item.missing_count }}</td>
+                    <td>{{ item.missing_rate }}%</td>
+                    <td>{{ item.sample_values }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="btn-row">
+        <a class="btn" href="/clean">进入数据清洗</a>
+        <a class="btn secondary" href="/preview">返回数据预览</a>
+    </div>
+</div>
+{% endblock %}

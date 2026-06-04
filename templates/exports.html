@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% set title = "结果导出" %}
+
+{% block content %}
+<div class="card">
+    <h1>结果导出</h1>
+    <p class="muted">
+        本页面用于下载数据清洗和数据分析后生成的结果文件，便于后续实验报告、截图和答辩材料整理。
+    </p>
+
+    <div class="export-list">
+        <div class="export-row">
+            <div>
+                <h3>清洗结果</h3>
+                <p class="muted">文件路径：<code>data/cleaned_data.csv</code></p>
+            </div>
+            {% if cleaned_exists %}
+                <a class="btn" href="/download_cleaned">下载清洗结果</a>
+            {% else %}
+                <span class="status-badge">待生成</span>
+            {% endif %}
+        </div>
+
+        <div class="export-row">
+            <div>
+                <h3>分析结果</h3>
+                <p class="muted">文件路径：<code>data/analyzed_data.csv</code></p>
+            </div>
+            {% if analyzed_exists %}
+                <a class="btn" href="/download_analyzed">下载分析结果</a>
+            {% else %}
+                <span class="status-badge">待生成</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="btn-row">
+        <a class="btn secondary" href="/clean">进入数据清洗</a>
+        <a class="btn secondary" href="/analysis">进入数据分析</a>
+    </div>
+</div>
+{% endblock %}

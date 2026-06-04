@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% set title = "数据预览" %}
+
+{% block content %}
+<div class="card">
+    <h1>数据预览</h1>
+    <p class="muted">
+        本页面用于快速确认上传文件是否读取成功，并展示字段列表、数据规模和前 20 行样本记录。
+    </p>
+    <p>
+        <strong>文件名：</strong>{{ filename }}
+        <strong class="inline-stat">数据规模：</strong>{{ rows }} 行，{{ cols }} 列
+    </p>
+
+    <h3>字段列表</h3>
+    <div class="tag-box">
+        {% for col in columns %}
+            <span class="tag">{{ col }}</span>
+        {% endfor %}
+    </div>
+
+    <h3>前 20 行数据</h3>
+    <div class="table-box">
+        {% for table in tables %}
+            {{ table|safe }}
+        {% endfor %}
+    </div>
+
+    <div class="btn-row">
+        <a class="btn" href="/dataset_info">查看数据集说明</a>
+        <a class="btn secondary" href="/clean">进入数据清洗</a>
+        <a class="btn secondary" href="/">重新上传</a>
+    </div>
+</div>
+{% endblock %}

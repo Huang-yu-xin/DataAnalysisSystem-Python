@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% set title = "数据可视化" %}
+
+{% block content %}
+<div class="card">
+    <h1>数据可视化模块</h1>
+    <p class="muted">
+        本页面支持多种交互式图表，包括柱状图、折线图、饼图、散点图、直方图、箱线图和相关性热力图，帮助用户从不同角度理解数据特征。
+    </p>
+
+    <h2>自定义图表</h2>
+    <form method="post" class="form-grid">
+        <div>
+            <label>图表类型</label>
+            <select name="chart_type">
+                <option value="bar">柱状图</option>
+                <option value="line">折线图</option>
+                <option value="pie">饼图</option>
+                <option value="scatter">散点图</option>
+                <option value="histogram">直方图</option>
+                <option value="boxplot">箱线图</option>
+                <option value="missing_bar">缺失值柱状图</option>
+            </select>
+        </div>
+
+        <div>
+            <label>X 轴 / 主字段</label>
+            <select name="x_col">
+                {% for col in all_cols %}
+                    <option value="{{ col }}">{{ col }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <label>Y 轴 / 分组字段</label>
+            <select name="y_col">
+                <option value="">不选择</option>
+                {% for col in all_cols %}
+                    <option value="{{ col }}">{{ col }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="wide helper-text">
+            直方图和箱线图主字段需选择数值字段；箱线图分组字段可选择类别字段；缺失值柱状图会自动统计全部字段。
+        </div>
+
+        <div class="wide btn-row">
+            <button type="submit">生成自定义图表</button>
+        </div>
+    </form>
+
+    {% if custom_message %}
+        <div class="alert alert-info">{{ custom_message }}</div>
+    {% endif %}
+
+    {% if custom_error %}
+        <div class="alert alert-danger">{{ custom_error }}</div>
+    {% endif %}
+
+    {% if custom_chart %}
+        <h3>自定义图表结果</h3>
+        <div class="chart-box">
+            {{ custom_chart|safe }}
+        </div>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2>默认可视化图表</h2>
+
+    {% if default_charts %}
+        {% for chart in default_charts %}
+            <h3>{{ chart.title }}</h3>
+            <div class="chart-box">
+                {{ chart.html|safe }}
+            </div>
+        {% endfor %}
+    {% else %}
+        <p class="muted">当前数据暂时无法生成默认图表，请尝试使用自定义图表。</p>
+    {% endif %}
+</div>
+{% endblock %}

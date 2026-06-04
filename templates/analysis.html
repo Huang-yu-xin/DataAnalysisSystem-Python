@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% set title = "数据分析" %}
+
+{% block content %}
+<div class="card">
+    <h1>数据分析模块</h1>
+    <p class="muted">
+        本页面提供描述性统计分析和 KMeans 聚类分析。用户可以选择数值字段进行聚类，并通过轮廓系数、肘部法和 PCA 可视化辅助判断聚类效果。
+    </p>
+    <p><strong>当前数据规模：</strong>{{ rows }} 行，{{ cols }} 列</p>
+
+    <h2>KMeans 聚类分析</h2>
+    {% if not numeric_cols %}
+        <div class="alert alert-danger">数据中没有数值列，无法进行聚类分析。</div>
+    {% else %}
+    <form method="post">
+        <label>聚类数量 K</label>
+        <select name="cluster_count" class="small-select">
+            <option value="2">2 类</option>
+            <option value="3" selected>3 类</option>
+            <option value="4">4 类</option>
+            <option value="5">5 类</option>
+            <option value="6">6 类</option>
+            <option value="7">7 类</option>
+            <option value="8">8 类</option>
+        </select>
+
+        <h3>选择聚类特征字段</h3>
+        <p class="muted">至少选择两个数值字段，不选则系统自动选择天气数据常用字段。</p>
+
+        <div class="tag-box checkbox-cols">
+            {% for col in numeric_cols %}
+                <label class="tag">
+                    <input type="checkbox" name="feature_cols" value="{{ col }}">
+                    {{ col }}
+                </label>
+            {% endfor %}
+        </div>
+
+        <div class="btn-row">
+            <button type="submit">开始聚类分析</button>
+            <a class="btn secondary" href="/visual">进入可视化</a>
+            <a class="btn secondary" href="/download_analyzed">下载分析结果</a>
+        </div>
+    </form>
+    {% endif %}
+</div>
+
+{% if report %}
+<div class="card">
+    <h2>分析报告</h2>
+
+    {% if report.cluster_message %}
+        <div class="report">{{ report.cluster_message }}</div>
+    {% endif %}
+
+    {% if report.cluster_k_message %}
+        <div class="alert alert-info">{{ report.cluster_k_message }}</div>
+    {% endif %}
+
+    {% if report.cluster_method %}
+        <div class="summary-grid">
+            <div class="summary-item">
+                <span>分析方法</span>
+                <strong>{{ report.cluster_method }}</strong>
+            </div>
+            <div class="summary-item">
+                <span>聚类数量</span>
+                <strong>{{ report.cluster_k }}</strong>
+            </div>
+            <div class="summary-item">
+                <span>SSE / Inertia</span>
+                <strong>{{ report.cluster_inertia if report.cluster_inertia is not none else "未计算" }}</strong>
+            </div>
+            <div class="summary-item">
+                <span>轮廓系数</span>
+                <strong>
+                    {% if report.silhouette_score is defined and report.silhouette_score is not none %}
+                        {{ report.silhouette_score }}
+                    {% else %}
+                        未计算
+                    {% endif %}
+                </strong>
+            </div>
+        </div>
+
+        <p><strong>特征字段：</strong>{{ report.cluster_features | join(", ") }}</p>
+
+        {% if report.silhouette_message %}
+            <p class="muted">{{ report.silhouette_message }}</p>
+        {% endif %}
+
+        <h3>各类别数量</h3>
+        <ul>
+        {% for k, v in report.cluster_counts.items() %}
+            <li>第 {{ k }} 类：{{ v }} 条记录</li>
+        {% endfor %}
+        </ul>
+
+        {% if report.cluster_profile %}
+        <h3>各类别特征均值</h3>
+        <div class="table-box">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                    {% for key in report.cluster_profile[0].keys() %}
+                        <th>{{ key }}</th>
+                    {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                {% for row in report.cluster_profile %}
+                    <tr>
+                    {% for key, value in row.items() %}
+                        <td>{{ value }}</td>
+                    {% endfor %}
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    {% endif %}
+
+    {% if report.elbow_chart %}
+        <h3>肘部法 K 值选择图</h3>
+        {% if report.elbow_message %}
+            <p class="muted">{{ report.elbow_message }}</p>
+        {% endif %}
+        <div class="chart-box">{{ report.elbow_chart|safe }}</div>
+    {% elif report.elbow_message %}
+        <div class="alert alert-info">{{ report.elbow_message }}</div>
+    {% endif %}
+
+    {% if report.pca_chart %}
+        <h3>KMeans 聚类结果 PCA 二维可视化</h3>
+        <p class="muted">
+            该图将多个参与聚类的数值特征压缩到两个主成分上，用二维散点图展示不同聚类之间的分布差异，便于观察聚类结果是否具有一定区分度。
+        </p>
+        <div class="chart-box">{{ report.pca_chart|safe }}</div>
+    {% endif %}
+
+    <h3>基础统计信息</h3>
+    {% if report.basic %}
+    <div class="table-box">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>字段</th>
+                    <th>均值</th>
+                    <th>中位数</th>
+                    <th>最小值</th>
+                    <th>最大值</th>
+                    <th>标准差</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for item in report.basic %}
+                <tr>
+                    <td>{{ item.col }}</td>
+                    <td>{{ item.mean }}</td>
+                    <td>{{ item.median }}</td>
+                    <td>{{ item.min }}</td>
+                    <td>{{ item.max }}</td>
+                    <td>{{ item.std }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+        <p class="muted">当前数据没有可统计的数值字段。</p>
+    {% endif %}
+</div>
+{% endif %}
+
+<div class="card">
+    <h2>分析后数据预览</h2>
+    <div class="table-box">
+        {% for table in tables %}
+            {{ table|safe }}
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

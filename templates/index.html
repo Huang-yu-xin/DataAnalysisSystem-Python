@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% set title = "上传数据" %}
+
+{% block content %}
+<div class="card">
+    <h1>文件数据分析与可视化综合应用</h1>
+    <p class="muted">
+        支持 CSV、XLSX、XLS 数据文件上传，完成数据预览、数据集说明、数据清洗、统计分析、KMeans 聚类和 Plotly 交互式可视化。
+    </p>
+
+    <form action="/upload" method="post" enctype="multipart/form-data" class="upload-box">
+        <label>选择数据文件</label>
+        <input type="file" name="file" accept=".csv,.xlsx,.xls" required>
+        <button type="submit">上传并预览</button>
+    </form>
+
+    <div class="tip">
+        <strong>推荐测试数据：</strong>
+        项目包里的 <code>sample_data/Weather_Data.csv</code>。上传文件最大支持 10MB。
+    </div>
+</div>
+
+<div class="grid flow-grid">
+    <div class="small-card">
+        <span class="step">1</span>
+        <h3>上传数据</h3>
+        <p>支持 CSV、XLSX、XLS 格式的数据文件。</p>
+    </div>
+    <div class="small-card">
+        <span class="step">2</span>
+        <h3>数据预览</h3>
+        <p>查看字段列表、数据规模和前 20 行记录。</p>
+    </div>
+    <div class="small-card">
+        <span class="step">3</span>
+        <h3>数据清洗</h3>
+        <p>处理缺失值、重复值、异常值和字段格式问题。</p>
+    </div>
+    <div class="small-card">
+        <span class="step">4</span>
+        <h3>数据分析</h3>
+        <p>提供描述性统计、KMeans 聚类、轮廓系数和肘部法。</p>
+    </div>
+    <div class="small-card">
+        <span class="step">5</span>
+        <h3>数据可视化</h3>
+        <p>通过 Plotly 生成折线图、散点图、箱线图等交互式图表。</p>
+    </div>
+    <div class="small-card">
+        <span class="step">6</span>
+        <h3>结果导出</h3>
+        <p>导出清洗结果和分析结果，便于实验报告整理。</p>
+    </div>
+</div>
+{% endblock %}
