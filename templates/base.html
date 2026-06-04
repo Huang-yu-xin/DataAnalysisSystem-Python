@@ -10,13 +10,13 @@
 <nav class="top-nav">
     <div class="brand">交互式数据分析系统</div>
     <div class="links">
-        <a href="/">首页</a>
-        <a href="/dataset_info">数据集说明</a>
-        <a href="/preview">数据预览</a>
-        <a href="/clean">数据清洗</a>
-        <a href="/analysis">数据分析</a>
-        <a href="/visual">数据可视化</a>
-        <a href="/exports">结果导出</a>
+        <a href="{{ url_for('index') }}" class="{% if request.path == '/' %}active{% endif %}">首页</a>
+        <a href="{{ url_for('dataset_info_page') }}" class="{% if request.path == '/dataset_info' %}active{% endif %}">数据集说明</a>
+        <a href="{{ url_for('preview_page') }}" class="{% if request.path == '/preview' %}active{% endif %}">数据预览</a>
+        <a href="{{ url_for('clean_page') }}" class="{% if request.path == '/clean' %}active{% endif %}">数据清洗</a>
+        <a href="{{ url_for('analysis_page') }}" class="{% if request.path == '/analysis' %}active{% endif %}">数据分析</a>
+        <a href="{{ url_for('visual_page') }}" class="{% if request.path == '/visual' %}active{% endif %}">数据可视化</a>
+        <a href="{{ url_for('exports_page') }}" class="{% if request.path == '/exports' %}active{% endif %}">结果导出</a>
     </div>
 </nav>
 
@@ -31,5 +31,10 @@
 
     {% block content %}{% endblock %}
 </main>
+
+<button id="back-to-top" class="back-to-top" type="button" aria-label="返回顶部">↑</button>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block scripts %}{% endblock %}
 </body>
 </html>

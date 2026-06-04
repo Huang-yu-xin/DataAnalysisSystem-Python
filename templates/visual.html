@@ -12,7 +12,7 @@
     <form method="post" class="form-grid">
         <div>
             <label>图表类型</label>
-            <select name="chart_type">
+            <select name="chart_type" id="chart-type-select">
                 <option value="bar" {% if chart_type_selected == "bar" %}selected{% endif %}>柱状图</option>
                 <option value="line" {% if chart_type_selected == "line" %}selected{% endif %}>折线图</option>
                 <option value="pie" {% if chart_type_selected == "pie" %}selected{% endif %}>饼图</option>
@@ -23,7 +23,7 @@
             </select>
         </div>
 
-        <div>
+        <div id="x-field-group">
             <label>X 轴 / 主字段</label>
             <select name="x_col">
                 {% for col in all_cols %}
@@ -32,7 +32,7 @@
             </select>
         </div>
 
-        <div>
+        <div id="y-field-group">
             <label>Y 轴 / 分组字段</label>
             <select name="y_col">
                 <option value="" {% if y_col_selected == "" %}selected{% endif %}>不选择</option>
@@ -42,9 +42,7 @@
             </select>
         </div>
 
-        <div class="wide helper-text">
-            直方图和箱线图主字段需选择数值字段；箱线图分组字段可选择类别字段；缺失值柱状图会自动统计全部字段。
-        </div>
+        <div class="wide hint" id="chart-help-text"></div>
 
         <div class="wide btn-row">
             <button type="submit">生成自定义图表</button>

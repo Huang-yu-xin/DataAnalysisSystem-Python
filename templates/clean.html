@@ -24,13 +24,13 @@
 
         <div>
             <label>日期字段缺失值处理</label>
-            <select name="datetime_strategy">
+            <select name="datetime_strategy" id="datetime-strategy">
                 <option value="none" {% if datetime_strategy == "none" %}selected{% endif %}>不处理</option>
                 <option value="drop" {% if datetime_strategy == "drop" %}selected{% endif %}>删除日期缺失行</option>
                 <option value="ffill_bfill" {% if datetime_strategy == "ffill_bfill" %}selected{% endif %}>前向/后向填充</option>
                 <option value="continuous" {% if datetime_strategy == "continuous" %}selected{% endif %}>连续日期自动补全</option>
             </select>
-            <p class="muted">日期字段通常用于时间排序和趋势图，如果 Date 缺失，可能影响后续折线图和时间序列分析。建议选择删除日期缺失行或连续日期自动补全。</p>
+            <p class="hint" id="datetime-hint"></p>
         </div>
 
         <div>
@@ -45,14 +45,14 @@
 
         <div>
             <label>异常值检测方法</label>
-            <select name="outlier_method">
+            <select name="outlier_method" id="outlier-method">
                 <option value="iqr" {% if outlier_method == "iqr" %}selected{% endif %}>IQR 四分位距法</option>
                 <option value="zscore" {% if outlier_method == "zscore" %}selected{% endif %}>Z-Score 标准分法</option>
                 <option value="none" {% if outlier_method == "none" %}selected{% endif %}>不检测</option>
             </select>
         </div>
 
-        <div>
+        <div id="outlier-action-group">
             <label>异常值处理方式</label>
             <select name="outlier_action">
                 <option value="cap" {% if outlier_action == "cap" %}selected{% endif %}>盖帽处理</option>
@@ -62,14 +62,22 @@
             </select>
         </div>
 
-        <div class="wide">
+        <div class="wide" id="outlier-columns-group">
             <label>指定异常值检测列</label>
             <input type="text" name="outlier_columns" placeholder="例如：MinTemp,MaxTemp,Rainfall。留空表示检测所有数值列">
         </div>
 
+        <div class="wide">
+            <p class="warning-hint hint" id="outlier-hint"></p>
+        </div>
+
         <div class="checkbox-line">
             <label><input type="checkbox" name="drop_duplicate" checked> 删除重复值</label>
-            <label><input type="checkbox" name="use_weather_rules" checked> 启用天气数据专用规则</label>
+            <label><input type="checkbox" name="use_weather_rules" checked id="weather-rules-checkbox"> 启用天气数据专用规则</label>
+        </div>
+
+        <div class="wide">
+            <p class="warning-hint hint" id="weather-hint"></p>
         </div>
 
         <div class="wide btn-row">
@@ -150,111 +158,136 @@
 
 {% if report %}
 <div class="card">
-    <h2>清洗报告</h2>
+    <div class="collapsible-card">
+        <div class="collapse-title">清洗详情 <span>点击展开/收起</span></div>
+        <div class="collapse-body">
+            <div class="report">
+                <p><strong>原始数据：</strong>{{ report.original_rows }} 行，{{ report.original_cols }} 列</p>
+                <p><strong>清洗后数据：</strong>{{ report.final_rows }} 行，{{ report.final_cols }} 列</p>
+                <p><strong>删除全空行：</strong>{{ report.removed_empty_rows }} 行</p>
+                <p><strong>删除全空列：</strong>{{ report.removed_empty_cols }} 列</p>
+                <p><strong>重复值：</strong>检测到 {{ report.duplicates_before }} 行，删除 {{ report.duplicates_removed }} 行</p>
+            </div>
 
-    <div class="report">
-        <p><strong>原始数据：</strong>{{ report.original_rows }} 行，{{ report.original_cols }} 列</p>
-        <p><strong>清洗后数据：</strong>{{ report.final_rows }} 行，{{ report.final_cols }} 列</p>
-        <p><strong>删除全空行：</strong>{{ report.removed_empty_rows }} 行</p>
-        <p><strong>删除全空列：</strong>{{ report.removed_empty_cols }} 列</p>
-        <p><strong>重复值：</strong>检测到 {{ report.duplicates_before }} 行，删除 {{ report.duplicates_removed }} 行</p>
-    </div>
+            <div class="collapsible-card">
+                <div class="collapse-title">缺失值处理详情 <span>点击展开/收起</span></div>
+                <div class="collapse-body">
+                    <h3>缺失值处理前</h3>
+                    {% if report.missing_before %}
+                        <ul>
+                        {% for col, count in report.missing_before.items() %}
+                            <li>{{ col }}：{{ count }} 个缺失值</li>
+                        {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="success">没有检测到缺失值。</p>
+                    {% endif %}
 
-    <h3>缺失值处理前</h3>
-    {% if report.missing_before %}
-        <ul>
-        {% for col, count in report.missing_before.items() %}
-            <li>{{ col }}：{{ count }} 个缺失值</li>
-        {% endfor %}
-        </ul>
-    {% else %}
-        <p class="success">没有检测到缺失值。</p>
-    {% endif %}
+                    <h3>缺失值处理操作</h3>
+                    {% if report.missing_actions %}
+                        <ul>
+                        {% for item in report.missing_actions %}
+                            <li>{{ item }}</li>
+                        {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="muted">没有执行缺失值处理。</p>
+                    {% endif %}
+                </div>
+            </div>
 
-    <h3>缺失值处理操作</h3>
-    {% if report.missing_actions %}
-        <ul>
-        {% for item in report.missing_actions %}
-            <li>{{ item }}</li>
-        {% endfor %}
-        </ul>
-    {% else %}
-        <p class="muted">没有执行缺失值处理。</p>
-    {% endif %}
+            <div class="collapsible-card">
+                <div class="collapse-title">字段类型转换详情 <span>点击展开/收起</span></div>
+                <div class="collapse-body">
+                    {% if report.type_converted %}
+                        <ul>
+                        {% for item in report.type_converted %}
+                            <li>{{ item }}</li>
+                        {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="muted">没有自动转换字段类型。</p>
+                    {% endif %}
+                </div>
+            </div>
 
-    <h3>数据类型转换</h3>
-    {% if report.type_converted %}
-        <ul>
-        {% for item in report.type_converted %}
-            <li>{{ item }}</li>
-        {% endfor %}
-        </ul>
-    {% else %}
-        <p class="muted">没有自动转换字段类型。</p>
-    {% endif %}
+            <div class="collapsible-card">
+                <div class="collapse-title">天气规则处理详情 <span>点击展开/收起</span></div>
+                <div class="collapse-body">
+                    {% if report.domain_rules %}
+                        <ul>
+                        {% for item in report.domain_rules %}
+                            <li>{{ item }}</li>
+                        {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="muted">未启用天气数据专用规则。</p>
+                    {% endif %}
+                </div>
+            </div>
 
-    <h3>天气数据专用规则</h3>
-    {% if report.domain_rules %}
-        <ul>
-        {% for item in report.domain_rules %}
-            <li>{{ item }}</li>
-        {% endfor %}
-        </ul>
-    {% else %}
-        <p class="muted">未启用天气数据专用规则。</p>
-    {% endif %}
+            <div class="collapsible-card">
+                <div class="collapse-title">异常值处理详情 <span>点击展开/收起</span></div>
+                <div class="collapse-body">
+                    <h3>异常值检测结果</h3>
+                    {% if report.outliers %}
+                        <div class="table-box">
+                            <table class="table table-bordered table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>字段</th>
+                                        <th>方法</th>
+                                        <th>下界</th>
+                                        <th>上界</th>
+                                        <th>异常值数量</th>
+                                        <th>处理方式</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for col, info in report.outliers.items() %}
+                                    <tr>
+                                        <td>{{ col }}</td>
+                                        <td>{{ info.method }}</td>
+                                        <td>{{ info.lower }}</td>
+                                        <td>{{ info.upper }}</td>
+                                        <td>{{ info.count }}</td>
+                                        <td>{{ info.action }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="success">没有检测到异常值，或未启用异常值检测。</p>
+                    {% endif %}
 
-    <h3>异常值检测结果</h3>
-    {% if report.outliers %}
-        <div class="table-box">
-            <table class="table table-bordered table-sm">
-                <thead>
-                    <tr>
-                        <th>字段</th>
-                        <th>方法</th>
-                        <th>下界</th>
-                        <th>上界</th>
-                        <th>异常值数量</th>
-                        <th>处理方式</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for col, info in report.outliers.items() %}
-                    <tr>
-                        <td>{{ col }}</td>
-                        <td>{{ info.method }}</td>
-                        <td>{{ info.lower }}</td>
-                        <td>{{ info.upper }}</td>
-                        <td>{{ info.count }}</td>
-                        <td>{{ info.action }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                    <h3>异常值处理操作</h3>
+                    {% if report.outlier_actions %}
+                        <ul>
+                        {% for item in report.outlier_actions %}
+                            <li>{{ item }}</li>
+                        {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="muted">没有执行异常值处理。</p>
+                    {% endif %}
+                </div>
+            </div>
         </div>
-    {% else %}
-        <p class="success">没有检测到异常值，或未启用异常值检测。</p>
-    {% endif %}
-
-    <h3>异常值处理操作</h3>
-    {% if report.outlier_actions %}
-        <ul>
-        {% for item in report.outlier_actions %}
-            <li>{{ item }}</li>
-        {% endfor %}
-        </ul>
-    {% else %}
-        <p class="muted">没有执行异常值处理。</p>
-    {% endif %}
+    </div>
 </div>
 {% endif %}
 
 <div class="card">
-    <h2>清洗后数据预览</h2>
-    <div class="table-box">
-        {% for table in tables %}
-            {{ table|safe }}
-        {% endfor %}
+    <div class="collapsible-card">
+        <div class="collapse-title">清洗后数据预览 <span>点击展开/收起</span></div>
+        <div class="collapse-body">
+            <div class="table-box">
+                {% for table in tables %}
+                    {{ table|safe }}
+                {% endfor %}
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

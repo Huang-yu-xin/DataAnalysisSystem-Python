@@ -50,6 +50,12 @@ body {
     background: rgba(255, 255, 255, 0.12);
 }
 
+.links a.active {
+    background: rgba(255, 255, 255, 0.18);
+    font-weight: 700;
+    border-radius: 8px;
+}
+
 .container {
     width: 94%;
     max-width: 1400px;
@@ -96,6 +102,20 @@ h3 {
 .muted,
 .helper-text {
     color: #667085;
+}
+
+.hint {
+    color: #667085;
+    font-size: 14px;
+    margin: 6px 0 0;
+}
+
+.warning-hint {
+    color: #b45309;
+}
+
+.success-hint {
+    color: #15803d;
 }
 
 .success {
@@ -196,6 +216,14 @@ button:hover,
     flex-wrap: wrap;
     gap: 12px;
     align-items: center;
+}
+
+.inline-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin: 10px 0;
 }
 
 .tip {
@@ -386,6 +414,12 @@ code {
     padding: 2px 5px;
 }
 
+button:disabled,
+.btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
 @media (max-width: 1100px) {
     .grid,
     .flow-grid,
@@ -414,6 +448,7 @@ code {
 
     .links {
         justify-content: flex-start;
+        gap: 6px;
     }
 
     .grid,
@@ -443,4 +478,59 @@ code {
         align-items: flex-start;
         flex-direction: column;
     }
+}
+
+.hidden {
+    display: none;
+}
+
+.collapsible-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #f9fafb;
+    padding: 14px;
+    margin-top: 12px;
+}
+
+.collapse-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.collapse-title span {
+    font-weight: 400;
+    color: #64748b;
+    font-size: 13px;
+}
+
+.collapse-body {
+    margin-top: 12px;
+}
+
+.back-to-top {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    display: none;
+    z-index: 999;
+    background: #0f766e;
+    color: #fff;
+    border-radius: 999px;
+    width: 42px;
+    height: 42px;
+    box-shadow: 0 8px 20px rgba(15, 118, 110, 0.25);
+}
+
+.back-to-top.show {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.back-to-top:hover {
+    background: #0d5f59;
 }
