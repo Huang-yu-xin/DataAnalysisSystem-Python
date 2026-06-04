@@ -57,7 +57,9 @@ DataAnalysisSystem_Full/
 │   ├── analysis.html
 │   ├── visual.html
 │   └── exports.html
-├── static/css/style.css
+├── static/
+│   ├── css/style.css
+│   └── js/main.js
 ├── sample_data/Weather_Data.csv
 ├── uploads/
 └── data/
