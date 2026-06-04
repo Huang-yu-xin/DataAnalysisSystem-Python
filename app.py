@@ -170,18 +170,24 @@ def clean_page():
     if request.method == "POST":
         numeric_strategy = request.form.get("numeric_strategy", "median")
         category_strategy = request.form.get("category_strategy", "mode")
+        datetime_strategy = request.form.get("datetime_strategy", "drop")
         outlier_method = request.form.get("outlier_method", "iqr")
         outlier_action = request.form.get("outlier_action", "cap")
     else:
         numeric_strategy = "median"
         category_strategy = "mode"
+        datetime_strategy = "drop"
         outlier_method = "iqr"
         outlier_action = "cap"
 
     if request.method == "POST":
         before_df = current_df.copy()
         try:
-            current_df, clean_report = clean_data(current_df, request.form)
+            current_df, clean_report = clean_data(
+                current_df,
+                request.form,
+                datetime_strategy=datetime_strategy
+            )
             clean_report["missing_chart_before"] = create_missing_value_bar(
                 before_df,
                 "清洗前各字段缺失值数量统计"
@@ -209,6 +215,7 @@ def clean_page():
         error=error,
         numeric_strategy=numeric_strategy,
         category_strategy=category_strategy,
+        datetime_strategy=datetime_strategy,
         outlier_method=outlier_method,
         outlier_action=outlier_action
     )

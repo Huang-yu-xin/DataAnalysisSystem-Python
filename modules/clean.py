@@ -199,6 +199,78 @@ def _handle_missing_values(df, numeric_strategy, category_strategy, report):
     return df
 
 
+def _fill_continuous_datetime_series(series):
+    """按连续日期补全缺失值，依据前一个有效日期递增天数。"""
+    filled = series.copy()
+
+    for idx in range(len(filled)):
+        if pd.isna(filled.iloc[idx]):
+            prev_idx = idx - 1
+            while prev_idx >= 0 and pd.isna(filled.iloc[prev_idx]):
+                prev_idx -= 1
+
+            if prev_idx >= 0 and pd.notna(filled.iloc[prev_idx]):
+                filled.iloc[idx] = filled.iloc[prev_idx] + pd.Timedelta(days=idx - prev_idx)
+
+    return filled
+
+
+def _handle_datetime_missing_values(df, strategy, report):
+    """
+    处理日期/时间类型字段中的缺失值。
+
+    支持策略：
+    - none：不处理，只在报告中记录剩余缺失数量
+    - drop：删除日期字段缺失的行
+    - ffill_bfill：先前向填充，再后向填充
+    - continuous：尝试按连续日期自动补全，无法补全时使用前向/后向填充兜底
+    """
+    datetime_cols = df.select_dtypes(include=["datetime", "datetimetz"]).columns
+
+    for col in datetime_cols:
+        missing_num = int(df[col].isna().sum())
+        if missing_num == 0:
+            continue
+
+        if strategy == "none":
+            report["missing_actions"].append(
+                f"{col}：日期字段缺失 {missing_num} 个，未处理。"
+            )
+            continue
+
+        if strategy == "drop":
+            before_rows = len(df)
+            df = df.dropna(subset=[col]).copy()
+            removed_rows = before_rows - len(df)
+            report["missing_actions"].append(
+                f"{col}：日期字段缺失 {missing_num} 个，已删除对应行 {removed_rows} 行。"
+            )
+            continue
+
+        if strategy == "ffill_bfill":
+            df[col] = df[col].ffill().bfill()
+            remaining = int(df[col].isna().sum())
+            report["missing_actions"].append(
+                f"{col}：日期字段缺失 {missing_num} 个，已使用前向/后向填充，剩余缺失 {remaining} 个。"
+            )
+            continue
+
+        if strategy == "continuous":
+            df[col] = _fill_continuous_datetime_series(df[col])
+            df[col] = df[col].ffill().bfill()
+            remaining = int(df[col].isna().sum())
+            report["missing_actions"].append(
+                f"{col}：日期字段缺失 {missing_num} 个，已按连续日期规则补全，剩余缺失 {remaining} 个。"
+            )
+            continue
+
+        report["missing_actions"].append(
+            f"{col}：日期字段缺失 {missing_num} 个，策略 {strategy} 未识别，未处理。"
+        )
+
+    return df
+
+
 def _apply_weather_rules(df, report):
     """
     天气数据专用清洗规则：
@@ -361,7 +433,18 @@ def _detect_and_handle_outliers(df, method, action, outlier_columns, report):
     return df
 
 
-def clean_data(df, form=None):
+def clean_data(
+    df,
+    form=None,
+    numeric_strategy="median",
+    category_strategy="mode",
+    outlier_method="iqr",
+    outlier_action="cap",
+    outlier_columns="",
+    drop_duplicate=True,
+    use_weather_rules=True,
+    datetime_strategy="drop"
+):
     """主清洗函数，返回清洗后的 DataFrame 和清洗报告。"""
     report = {
         "original_rows": int(df.shape[0]),
@@ -383,17 +466,10 @@ def clean_data(df, form=None):
         "comparison": None
     }
 
-    if form is None:
-        numeric_strategy = "median"
-        category_strategy = "mode"
-        outlier_method = "iqr"
-        outlier_action = "cap"
-        outlier_columns = ""
-        drop_duplicate = True
-        use_weather_rules = True
-    else:
+    if form is not None:
         numeric_strategy = form.get("numeric_strategy", "median")
         category_strategy = form.get("category_strategy", "mode")
+        datetime_strategy = form.get("datetime_strategy", "drop")
         outlier_method = form.get("outlier_method", "iqr")
         outlier_action = form.get("outlier_action", "cap")
         outlier_columns = form.get("outlier_columns", "")
@@ -424,6 +500,8 @@ def clean_data(df, form=None):
         report["duplicates_removed"] = duplicate_count
 
     df = _handle_missing_values(df, numeric_strategy, category_strategy, report)
+    df = _handle_datetime_missing_values(df, datetime_strategy, report)
+    report["missing_after"] = _missing_count(df)
 
     if use_weather_rules:
         df = _apply_weather_rules(df, report)

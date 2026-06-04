@@ -23,6 +23,17 @@
         </div>
 
         <div>
+            <label>日期字段缺失值处理</label>
+            <select name="datetime_strategy">
+                <option value="none" {% if datetime_strategy == "none" %}selected{% endif %}>不处理</option>
+                <option value="drop" {% if datetime_strategy == "drop" %}selected{% endif %}>删除日期缺失行</option>
+                <option value="ffill_bfill" {% if datetime_strategy == "ffill_bfill" %}selected{% endif %}>前向/后向填充</option>
+                <option value="continuous" {% if datetime_strategy == "continuous" %}selected{% endif %}>连续日期自动补全</option>
+            </select>
+            <p class="muted">日期字段通常用于时间排序和趋势图，如果 Date 缺失，可能影响后续折线图和时间序列分析。建议选择删除日期缺失行或连续日期自动补全。</p>
+        </div>
+
+        <div>
             <label>类别型缺失值处理</label>
             <select name="category_strategy">
                 <option value="mode" {% if category_strategy == "mode" %}selected{% endif %}>众数填充</option>
