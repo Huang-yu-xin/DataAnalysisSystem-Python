@@ -14,40 +14,40 @@
         <div>
             <label>数值型缺失值处理</label>
             <select name="numeric_strategy">
-                <option value="median">中位数填充</option>
-                <option value="mean">均值填充</option>
-                <option value="zero">0 填充</option>
-                <option value="drop">删除缺失行</option>
-                <option value="none">不处理</option>
+                <option value="median" {% if numeric_strategy == "median" %}selected{% endif %}>中位数填充</option>
+                <option value="mean" {% if numeric_strategy == "mean" %}selected{% endif %}>均值填充</option>
+                <option value="zero" {% if numeric_strategy == "zero" %}selected{% endif %}>0 填充</option>
+                <option value="drop" {% if numeric_strategy == "drop" %}selected{% endif %}>删除缺失行</option>
+                <option value="none" {% if numeric_strategy == "none" %}selected{% endif %}>不处理</option>
             </select>
         </div>
 
         <div>
             <label>类别型缺失值处理</label>
             <select name="category_strategy">
-                <option value="mode">众数填充</option>
-                <option value="unknown">Unknown 填充</option>
-                <option value="drop">删除缺失行</option>
-                <option value="none">不处理</option>
+                <option value="mode" {% if category_strategy == "mode" %}selected{% endif %}>众数填充</option>
+                <option value="unknown" {% if category_strategy == "unknown" %}selected{% endif %}>Unknown 填充</option>
+                <option value="drop" {% if category_strategy == "drop" %}selected{% endif %}>删除缺失行</option>
+                <option value="none" {% if category_strategy == "none" %}selected{% endif %}>不处理</option>
             </select>
         </div>
 
         <div>
             <label>异常值检测方法</label>
             <select name="outlier_method">
-                <option value="iqr">IQR 四分位距法</option>
-                <option value="zscore">Z-Score 标准分法</option>
-                <option value="none">不检测</option>
+                <option value="iqr" {% if outlier_method == "iqr" %}selected{% endif %}>IQR 四分位距法</option>
+                <option value="zscore" {% if outlier_method == "zscore" %}selected{% endif %}>Z-Score 标准分法</option>
+                <option value="none" {% if outlier_method == "none" %}selected{% endif %}>不检测</option>
             </select>
         </div>
 
         <div>
             <label>异常值处理方式</label>
             <select name="outlier_action">
-                <option value="cap">盖帽处理</option>
-                <option value="remove">删除异常行</option>
-                <option value="flag">只标记异常值</option>
-                <option value="none">只检测不处理</option>
+                <option value="cap" {% if outlier_action == "cap" %}selected{% endif %}>盖帽处理</option>
+                <option value="remove" {% if outlier_action == "remove" %}selected{% endif %}>删除异常行</option>
+                <option value="flag" {% if outlier_action == "flag" %}selected{% endif %}>只标记异常值</option>
+                <option value="none" {% if outlier_action == "none" %}selected{% endif %}>只检测不处理</option>
             </select>
         </div>
 

@@ -16,13 +16,13 @@
     <form method="post">
         <label>聚类数量 K</label>
         <select name="cluster_count" class="small-select">
-            <option value="2">2 类</option>
-            <option value="3" selected>3 类</option>
-            <option value="4">4 类</option>
-            <option value="5">5 类</option>
-            <option value="6">6 类</option>
-            <option value="7">7 类</option>
-            <option value="8">8 类</option>
+            <option value="2" {% if cluster_count_selected == "2" %}selected{% endif %}>2 类</option>
+            <option value="3" {% if cluster_count_selected == "3" %}selected{% endif %}>3 类</option>
+            <option value="4" {% if cluster_count_selected == "4" %}selected{% endif %}>4 类</option>
+            <option value="5" {% if cluster_count_selected == "5" %}selected{% endif %}>5 类</option>
+            <option value="6" {% if cluster_count_selected == "6" %}selected{% endif %}>6 类</option>
+            <option value="7" {% if cluster_count_selected == "7" %}selected{% endif %}>7 类</option>
+            <option value="8" {% if cluster_count_selected == "8" %}selected{% endif %}>8 类</option>
         </select>
 
         <h3>选择聚类特征字段</h3>

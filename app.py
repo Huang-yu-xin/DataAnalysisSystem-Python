@@ -168,6 +168,17 @@ def clean_page():
     error = None
 
     if request.method == "POST":
+        numeric_strategy = request.form.get("numeric_strategy", "median")
+        category_strategy = request.form.get("category_strategy", "mode")
+        outlier_method = request.form.get("outlier_method", "iqr")
+        outlier_action = request.form.get("outlier_action", "cap")
+    else:
+        numeric_strategy = "median"
+        category_strategy = "mode"
+        outlier_method = "iqr"
+        outlier_action = "cap"
+
+    if request.method == "POST":
         before_df = current_df.copy()
         try:
             current_df, clean_report = clean_data(current_df, request.form)
@@ -195,7 +206,11 @@ def clean_page():
         current_missing_chart=create_missing_value_bar(current_df),
         tables=[make_table(current_df, 20)],
         message=message,
-        error=error
+        error=error,
+        numeric_strategy=numeric_strategy,
+        category_strategy=category_strategy,
+        outlier_method=outlier_method,
+        outlier_action=outlier_action
     )
 
 
@@ -209,14 +224,17 @@ def analysis_page():
     numeric_cols = current_df.select_dtypes(include=["number"]).columns.tolist()
     message = None
     error = None
+    cluster_count_selected = "3"
 
     if request.method == "POST":
         selected_cols = request.form.getlist("feature_cols")
+        cluster_count_selected = request.form.get("cluster_count", "3")
 
         try:
-            k = int(request.form.get("cluster_count", 3))
+            k = int(cluster_count_selected)
         except (TypeError, ValueError):
             k = 3
+            cluster_count_selected = "3"
             error = "K 值不合法，已使用默认值 3。"
 
         try:
@@ -251,7 +269,8 @@ def analysis_page():
         report=analysis_report,
         tables=[make_table(current_df, 20)],
         message=message,
-        error=error
+        error=error,
+        cluster_count_selected=cluster_count_selected
     )
 
 
@@ -272,7 +291,12 @@ def visual_page():
         chart_type = request.form.get("chart_type", "scatter")
         x_col = request.form.get("x_col", "")
         y_col = request.form.get("y_col", "")
+    else:
+        chart_type = "scatter"
+        x_col = all_cols[0] if all_cols else ""
+        y_col = ""
 
+    if request.method == "POST":
         try:
             custom_chart = create_custom_chart(current_df, chart_type, x_col, y_col)
             custom_message = "自定义图表生成成功。"
@@ -289,7 +313,10 @@ def visual_page():
         default_charts=default_charts,
         custom_chart=custom_chart,
         custom_message=custom_message,
-        custom_error=custom_error
+        custom_error=custom_error,
+        chart_type_selected=chart_type,
+        x_col_selected=x_col,
+        y_col_selected=y_col
     )
 
 
